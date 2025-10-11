@@ -83,14 +83,59 @@ export default function DashboardPage() {
         const res = await generateResume({ ...form, userId })
         setResults((r) => ({ ...r, resume: res }))
         toast.success("Resume generated")
+        try {
+          if (userId) {
+            const safeTitle = (form.jobTarget || 'resume').replace(/[^a-z0-9\-]+/gi, '_')
+            const fileName = `${Date.now()}-${safeTitle}.html`
+            const up = await fetch('/api/upload-generated', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId, fileName, content: res, contentType: 'text/html' }),
+            })
+            if (!up.ok) throw new Error('upload-failed')
+            toast.success('Resume uploaded')
+          }
+        } catch {
+          toast.error('Upload failed (server)')
+        }
       } else if (type === "cover") {
         const res = await generateCoverLetter({ ...form, userId })
         setResults((r) => ({ ...r, cover: res }))
         toast.success("Cover letter generated")
+        try {
+          if (userId) {
+            const safeTitle = (form.jobTarget || 'cover-letter').replace(/[^a-z0-9\-]+/gi, '_')
+            const fileName = `${Date.now()}-${safeTitle}.txt`
+            const up = await fetch('/api/upload-generated', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId, fileName, content: res, contentType: 'text/plain' }),
+            })
+            if (!up.ok) throw new Error('upload-failed')
+            toast.success('Cover letter uploaded')
+          }
+        } catch {
+          toast.error('Upload failed (server)')
+        }
       } else {
         const res = await generatePortfolio({ ...form, userId })
         setResults((r) => ({ ...r, portfolio: res }))
         toast.success("Portfolio generated")
+        try {
+          if (userId) {
+            const safeTitle = (form.jobTarget || 'portfolio').replace(/[^a-z0-9\-]+/gi, '_')
+            const fileName = `${Date.now()}-${safeTitle}.html`
+            const up = await fetch('/api/upload-generated', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId, fileName, content: res, contentType: 'text/html' }),
+            })
+            if (!up.ok) throw new Error('upload-failed')
+            toast.success('Portfolio uploaded')
+          }
+        } catch {
+          toast.error('Upload failed (server)')
+        }
       }
     } catch (e: any) {
       toast.error(e?.message || "Generation failed")
