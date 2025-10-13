@@ -1,33 +1,97 @@
+// import { supabase } from '@/lib/supabaseClient'
+
+// export const saveResume = async (resume: {
+//   id: string
+//   user_id: string
+//   title: string
+//   content: string
+//   created_at: string
+//   type?: 'resume'
+//   pdf_url?: string | null
+// }) => {
+//   const payload: Record<string, any> = {
+//     id: resume.id,
+//     user_id: resume.user_id,
+//     title: resume.title,
+//     content: resume.content,
+//     created_at: resume.created_at,
+//   }
+//   if (typeof resume.type !== 'undefined') payload.type = resume.type
+//   if (typeof resume.pdf_url !== 'undefined') payload.pdf_url = resume.pdf_url
+
+//   const { data, error } = await supabase
+//     .from('resumes')
+//     .upsert(payload)
+//     .select()
+//     .single()
+
+//   if (error) {
+//     console.error('Error saving resume:', error)
+//     throw error
+//   }
+
+//   return data
+// }
+
+// export const getUserResumes = async (userId: string) => {
+//   const { data, error } = await supabase
+//     .from('resumes')
+//     .select('*')
+//     .eq('user_id', userId)
+//     .order('created_at', { ascending: false })
+
+//   if (error) {
+//     console.error('Error fetching resumes:', error)
+//     throw error
+//   }
+
+//   return data
+// }
+
+// export const deleteResume = async (id: string) => {
+//   const { error } = await supabase
+//     .from('resumes')
+//     .delete()
+//     .eq('id', id)
+
+//   if (error) {
+//     console.error('Error deleting resume:', error)
+//     throw error
+//   }
+// }
+
 import { supabase } from '@/lib/supabaseClient'
 
 export const saveResume = async (resume: {
-  id: string
+  id?: string
   user_id: string
   title: string
   content: string
-  created_at: string
-  type?: 'resume'
+  created_at?: string
+  type?: string
   pdf_url?: string | null
 }) => {
   const payload: Record<string, any> = {
-    id: resume.id,
     user_id: resume.user_id,
     title: resume.title,
     content: resume.content,
-    created_at: resume.created_at,
+    updated_at: new Date().toISOString(), // ensure update tracking
   }
-  if (typeof resume.type !== 'undefined') payload.type = resume.type
-  if (typeof resume.pdf_url !== 'undefined') payload.pdf_url = resume.pdf_url
+
+  if (resume.id) payload.id = resume.id
+  if (resume.type) payload.type = resume.type
+  if (resume.pdf_url) payload.pdf_url = resume.pdf_url
+  if (resume.created_at) payload.created_at = resume.created_at
 
   const { data, error } = await supabase
     .from('resumes')
-    .upsert(payload)
+    .upsert(payload, { onConflict: 'id' })
     .select()
     .single()
 
   if (error) {
-    console.error('Error saving resume:', error)
-    throw error
+    console.error('Error saving resume:', error.message)
+    throw new Error(`Failed to save resume: ${error.message}`)
   }
 
   return data
@@ -38,11 +102,11 @@ export const getUserResumes = async (userId: string) => {
     .from('resumes')
     .select('*')
     .eq('user_id', userId)
-    .order('created_at', { ascending: false })
+    .order('updated_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching resumes:', error)
-    throw error
+    console.error('Error fetching resumes:', error.message)
+    throw new Error(`Failed to fetch resumes: ${error.message}`)
   }
 
   return data
@@ -55,7 +119,7 @@ export const deleteResume = async (id: string) => {
     .eq('id', id)
 
   if (error) {
-    console.error('Error deleting resume:', error)
-    throw error
+    console.error('Error deleting resume:', error.message)
+    throw new Error(`Failed to delete resume: ${error.message}`)
   }
 }

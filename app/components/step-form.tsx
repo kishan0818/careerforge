@@ -898,7 +898,7 @@ export default function StepForm({ form, setForm, onSubmit, finalActions }: Step
           <Button type="button" onClick={() => go(idx + 1)}>
             Next: {steps[idx + 1].label} →
           </Button>
-        ) : (
+        ) : finalActions ? null : (
           <Button type="submit" className="bg-primary">
             Generate Resume
           </Button>
