@@ -10,16 +10,16 @@ import { toast } from "sonner"
 type Doc = {
   id: string
   title: string
-  type: "resume" | "cover_letter" | "portfolio"
+  type: "resume"
   content: string
   created_at?: string
+  pdf_url?: string | null
 }
 
 export default function MyDocumentsPage() {
   const [docs, setDocs] = useState<Doc[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<"all" | "resume" | "cover_letter" | "portfolio">("all")
-  const [uploading, setUploading] = useState(false)
+  
 
   useEffect(() => {
     ;(async () => {
@@ -32,7 +32,7 @@ export default function MyDocumentsPage() {
         }
         const { data, error } = await supabase
           .from("resumes")
-          .select("id,title,type,content,created_at")
+          .select("id,title,type,content,created_at,pdf_url")
           .eq("user_id", user.user.id)
           .order("created_at", { ascending: false })
         if (error) throw error
@@ -45,40 +45,16 @@ export default function MyDocumentsPage() {
     })()
   }, [])
 
-  const filtered = useMemo(() => {
-    if (filter === "all") return docs
-    return docs.filter((d) => d.type === filter)
-  }, [docs, filter])
+  const filtered = useMemo(() => docs.filter((d) => d.type === 'resume'), [docs])
 
   const download = (doc: Doc) => {
-    const ext = doc.type === "portfolio" ? "html" : "txt"
-    const mime = doc.type === "portfolio" ? "text/html" : "text/plain"
-    const blob = new Blob([doc.content], { type: mime })
+    const blob = new Blob([doc.content], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `${doc.title}.${ext}`
+    a.download = `${doc.title}.html`
     a.click()
     URL.revokeObjectURL(url)
-  }
-
-  const onUpload = async (file: File) => {
-    try {
-      setUploading(true)
-      const { data: user } = await supabase.auth.getUser()
-      if (!user.user) {
-        toast.error("Please login")
-        return
-      }
-      const filename = `${user.user.id}/${Date.now()}-${file.name}`
-      const { error } = await supabase.storage.from("uploads").upload(filename, file, { upsert: false })
-      if (error) throw error
-      toast.success("File uploaded to uploads bucket")
-    } catch (e: any) {
-      toast.error(e?.message || "Upload failed")
-    } finally {
-      setUploading(false)
-    }
   }
 
   const remove = async (id: string) => {
@@ -101,29 +77,7 @@ export default function MyDocumentsPage() {
       <Navbar />
       <main className="mx-auto max-w-5xl p-6 space-y-6">
         <h1 className="text-2xl font-semibold">My Documents</h1>
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Filter:</span>
-            <select
-              className="h-9 rounded-md border border-border bg-card px-3"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as any)}
-            >
-              <option value="all">All</option>
-              <option value="resume">Resume</option>
-              <option value="cover_letter">Cover Letter</option>
-              <option value="portfolio">Portfolio</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium mr-2">Upload file</label>
-            <input
-              type="file"
-              onChange={(e) => e.target.files && e.target.files[0] && onUpload(e.target.files[0])}
-              disabled={uploading}
-            />
-          </div>
-        </div>
+        <div className="text-sm text-muted-foreground">Only AI-generated resumes are shown here.</div>
         {loading ? (
           <div>Loading…</div>
         ) : filtered.length === 0 ? (
