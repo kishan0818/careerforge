@@ -5,14 +5,23 @@ export const saveResume = async (resume: {
   user_id: string
   title: string
   content: string
-  data: any
   created_at: string
   type?: 'resume'
   pdf_url?: string | null
 }) => {
+  const payload: Record<string, any> = {
+    id: resume.id,
+    user_id: resume.user_id,
+    title: resume.title,
+    content: resume.content,
+    created_at: resume.created_at,
+  }
+  if (typeof resume.type !== 'undefined') payload.type = resume.type
+  if (typeof resume.pdf_url !== 'undefined') payload.pdf_url = resume.pdf_url
+
   const { data, error } = await supabase
     .from('resumes')
-    .upsert(resume)
+    .upsert(payload)
     .select()
     .single()
 
