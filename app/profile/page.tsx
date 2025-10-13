@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function ProfilePage() {
   const [about, setAbout] = useState("")
@@ -14,6 +15,9 @@ export default function ProfilePage() {
   const [github, setGithub] = useState("")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [tone, setTone] = useState<"professional" | "technical" | "creative" | "minimal">("professional")
+  const [jobTarget, setJobTarget] = useState("")
+  const { toast } = useToast()
 
   useEffect(() => {
     (async () => {
@@ -64,6 +68,28 @@ export default function ProfilePage() {
                 </select>
               </div>
               <div>
+                <label className="text-sm font-medium">Preferred Tone</label>
+                <select
+                  className="w-full h-10 rounded-md border border-border bg-card px-3"
+                  value={tone}
+                  onChange={(e) => setTone(e.target.value as any)}
+                >
+                  <option value="professional">Professional</option>
+                  <option value="technical">Technical</option>
+                  <option value="creative">Creative</option>
+                  <option value="minimal">Minimal</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Target Role</label>
+                <Input
+                  placeholder="e.g., Senior Software Engineer"
+                  value={jobTarget}
+                  onChange={(e) => setJobTarget(e.target.value)}
+                  className="bg-card"
+                />
+              </div>
+              <div>
                 <label className="text-sm font-medium">LinkedIn</label>
                 <Input
                   placeholder="https://linkedin.com/in/you"
@@ -82,7 +108,35 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
-            <Button className="bg-primary text-primary-foreground">Update Profile</Button>
+            <Button
+              className="bg-primary text-primary-foreground"
+              onClick={async () => {
+                try {
+                  const { data } = await supabase.auth.getUser()
+                  const userId = data.user?.id
+                  if (!userId) {
+                    toast({ title: 'Please login', variant: 'destructive' })
+                    return
+                  }
+                  const res = await fetch('/api/preferences/upsert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      user_id: userId,
+                      tone,
+                      template_style: theme.toLowerCase(),
+                      job_target: jobTarget,
+                    }),
+                  })
+                  if (!res.ok) throw new Error('Save failed')
+                  toast({ title: 'Preferences saved' })
+                } catch (e: any) {
+                  toast({ title: 'Failed to save', description: e?.message, variant: 'destructive' })
+                }
+              }}
+            >
+              Update Profile
+            </Button>
           </CardContent>
         </Card>
       </main>

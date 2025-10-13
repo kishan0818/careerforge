@@ -20,6 +20,7 @@ type StepFormProps = {
   form: FormData
   setForm: React.Dispatch<React.SetStateAction<FormData>>
   onSubmit?: () => void
+  finalActions?: React.ReactNode
 }
 
 // Helper type for array fields
@@ -38,7 +39,7 @@ const isProject = (item: any): item is ArrayField<FormData['projects']> =>
 const isExperience = (item: any): item is ArrayField<FormData['experience']> => 
   'company' in item && 'position' in item
 
-export default function StepForm({ form, setForm, onSubmit }: StepFormProps) {
+export default function StepForm({ form, setForm, onSubmit, finalActions }: StepFormProps) {
   const steps = [
     { id: "personal", label: "Personal" },
     { id: "education", label: "Education" },
@@ -875,6 +876,13 @@ export default function StepForm({ form, setForm, onSubmit }: StepFormProps) {
       <div className="rounded-lg border bg-card p-6 shadow-sm">
         {renderStepContent()}
       </div>
+
+      {/* Final step actions (captcha + generate) */}
+      {idx === steps.length - 1 && finalActions ? (
+        <div className="flex items-center justify-between pt-2">
+          {finalActions}
+        </div>
+      ) : null}
 
       {/* Navigation buttons */}
       <div className="flex justify-between pt-2">

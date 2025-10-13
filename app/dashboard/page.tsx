@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import Navbar from "@/app/components/navbar"
 import { useToast } from "@/components/ui/use-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Toaster } from "@/components/ui/toaster"
@@ -153,18 +154,21 @@ export default function DashboardPage() {
       const json = await res.json()
       const generatedResume: string = json?.content || ''
 
-      // Save to Supabase
+      // Save to Supabase (non-blocking for preview)
       if (userId) {
         const resumeId = uuidv4()
-        await saveResume({
-          id: resumeId,
-          user_id: userId,
-          title: formData.jobTarget || 'My Resume',
-          content: generatedResume,
-          created_at: new Date().toISOString(),
-          type: 'resume',
-          pdf_url: null,
-        })
+        try {
+          await saveResume({
+            id: resumeId,
+            user_id: userId,
+            title: formData.jobTarget || 'My Resume',
+            content: generatedResume,
+            created_at: new Date().toISOString(),
+          })
+        } catch (e) {
+          console.error('Error saving resume:', e)
+          // continue; preview should still open
+        }
       }
 
       setResumeContent(generatedResume)
@@ -184,28 +188,33 @@ export default function DashboardPage() {
 
   return (
     <FormProvider initialData={initialFormData}>
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Resume Builder</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StepForm 
-              form={form}
-              setForm={setForm}
-              onSubmit={() => handleGenerateResume(form)}
-            />
-            <div className="flex items-center justify-between pt-4">
-              <ReCAPTCHA
-                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY as string}
-                onChange={(token) => setCaptchaToken(token)}
+      <div className="min-h-dvh">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resume Builder</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StepForm 
+                form={form}
+                setForm={setForm}
+                onSubmit={() => handleGenerateResume(form)}
+                finalActions={
+                  <>
+                    <ReCAPTCHA
+                      sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY as string}
+                      onChange={(token) => setCaptchaToken(token)}
+                    />
+                    <Button type="button" onClick={() => handleGenerateResume(form)} disabled={isGenerating}>
+                      {isGenerating ? 'Generating...' : 'Generate Resume'}
+                    </Button>
+                  </>
+                }
               />
-              <Button onClick={() => handleGenerateResume(form)} disabled={isGenerating}>
-                {isGenerating ? 'Generating...' : 'Generate Resume'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </main>
       </div>
 
       <ResumePreviewModal

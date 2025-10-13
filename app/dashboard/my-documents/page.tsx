@@ -5,7 +5,7 @@ import Navbar from "@/app/components/navbar"
 import { supabase } from "@/lib/supabaseClient"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
+import { useToast } from "@/components/ui/use-toast"
 
 type Doc = {
   id: string
@@ -19,6 +19,7 @@ type Doc = {
 export default function MyDocumentsPage() {
   const [docs, setDocs] = useState<Doc[]>([])
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
   
 
   useEffect(() => {
@@ -27,18 +28,18 @@ export default function MyDocumentsPage() {
         setLoading(true)
         const { data: user } = await supabase.auth.getUser()
         if (!user.user) {
-          toast.error("Please login")
+          toast({ title: "Please login", variant: "destructive" })
           return
         }
         const { data, error } = await supabase
           .from("resumes")
-          .select("id,title,type,content,created_at,pdf_url")
+          .select("id,title,type,content,created_at")
           .eq("user_id", user.user.id)
           .order("created_at", { ascending: false })
         if (error) throw error
         setDocs((data as any) || [])
       } catch (e: any) {
-        toast.error(e?.message || "Failed to load documents")
+        toast({ title: "Failed to load documents", description: e?.message, variant: "destructive" })
       } finally {
         setLoading(false)
       }
@@ -66,9 +67,9 @@ export default function MyDocumentsPage() {
       })
       if (!res.ok) throw new Error("Delete failed")
       setDocs((d) => d.filter((x) => x.id !== id))
-      toast.success("Deleted")
+      toast({ title: "Deleted" })
     } catch (e: any) {
-      toast.error(e?.message || "Delete failed")
+      toast({ title: "Delete failed", description: e?.message, variant: "destructive" })
     }
   }
 
