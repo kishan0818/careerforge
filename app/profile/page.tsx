@@ -4,15 +4,26 @@ import Navbar from "@/app/components/navbar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { getUser } from "@/app/utils/auth"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function ProfilePage() {
-  const u = getUser()
   const [about, setAbout] = useState("")
   const [theme, setTheme] = useState<"Modern" | "Minimal" | "Classic">("Modern")
   const [linkedIn, setLinkedIn] = useState("")
   const [github, setGithub] = useState("")
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser()
+      if (data.user) {
+        setName((data.user.user_metadata as any)?.full_name || "")
+        setEmail(data.user.email || "")
+      }
+    })()
+  }, [])
 
   return (
     <div className="min-h-dvh">
@@ -28,11 +39,11 @@ export default function ProfilePage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Name</label>
-                <Input value={u?.name || ""} readOnly className="bg-card" />
+                <Input value={name} readOnly className="bg-card" />
               </div>
               <div>
                 <label className="text-sm font-medium">Email</label>
-                <Input value={u?.email || ""} readOnly className="bg-card" />
+                <Input value={email} readOnly className="bg-card" />
               </div>
             </div>
             <div>
