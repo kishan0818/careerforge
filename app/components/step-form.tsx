@@ -286,7 +286,7 @@ export default function StepForm({ form, setForm, onSubmit, finalActions }: Step
           <Input
             value={form.personal.phone}
             onChange={(e) => updateField('personal', 'phone', e.target.value)}
-            placeholder="+1 (555) 123-4567"
+            placeholder="+91 XXXXX XXXXX"
           />
         </div>
         <div className="space-y-2">
@@ -380,7 +380,7 @@ export default function StepForm({ form, setForm, onSubmit, finalActions }: Step
               <Input
                 value={edu.gpa || ''}
                 onChange={(e) => updateField('education', 'gpa', e.target.value, index)}
-                placeholder="3.8/4.0"
+                placeholder="8.5/10.0"
               />
             </div>
             <div className="space-y-2">

@@ -55,10 +55,23 @@ export const generatePdf = async (html: string, filename: string) => {
     const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF('p', 'mm', 'a4')
     const imgProps = pdf.getImageProperties(imgData)
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+    const pageWidthMm = pdf.internal.pageSize.getWidth()
+    const pageHeightMm = pdf.internal.pageSize.getHeight()
+    const imgHeightMm = (imgProps.height * pageWidthMm) / imgProps.width
 
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+    // Add first page
+    let positionMm = 0
+    pdf.addImage(imgData, 'PNG', 0, positionMm, pageWidthMm, imgHeightMm)
+
+    // Add subsequent pages if content overflows
+    let heightLeftMm = imgHeightMm - pageHeightMm
+    while (heightLeftMm > 0) {
+      pdf.addPage()
+      positionMm = - (imgHeightMm - heightLeftMm)
+      pdf.addImage(imgData, 'PNG', 0, positionMm, pageWidthMm, imgHeightMm)
+      heightLeftMm -= pageHeightMm
+    }
+
     pdf.save(filename)
   } finally {
     iframe.remove()
