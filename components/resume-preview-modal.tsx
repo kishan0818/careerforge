@@ -29,22 +29,15 @@ export default function ResumePreviewModal({ isOpen, onClose, content }: ResumeP
   }
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        onClose()
-      }
-    }
-
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
       document.body.style.overflow = 'hidden'
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+    } else {
       document.body.style.overflow = 'auto'
     }
-  }, [isOpen, onClose])
+    return () => {
+      document.body.style.overflow = 'auto'
+    }
+  }, [isOpen])
 
   if (typeof window === 'undefined') return null
 
