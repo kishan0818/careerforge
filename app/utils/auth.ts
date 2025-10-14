@@ -11,7 +11,7 @@ export type CFUser = {
 export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${window.location.origin}/dashboard` },
+    options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard` },
   })
   if (error) throw error
   return data

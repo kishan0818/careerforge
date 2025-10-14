@@ -56,7 +56,8 @@ Create a `.env.local` in the project root and populate as needed:
 
 ```bash
 # Next.js
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=https://careerforge-jk.vercel.app
+
 
 # Supabase (public client)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
