@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from './ui/button'
 import { Download, X } from 'lucide-react'
 import { useForm } from '@/contexts/form-context'
-import { generatePdf, generateDocx } from '@/lib/resume-export'
+import { downloadResumePDF, downloadResumeWord } from '@/lib/downloads'
 
 type ResumePreviewModalProps = {
   isOpen: boolean
@@ -18,13 +18,13 @@ export default function ResumePreviewModal({ isOpen, onClose, content }: ResumeP
 
   const handleDownloadPdf = async () => {
     if (content) {
-      await generatePdf(content, `${form.personal.name || 'resume'}.pdf`)
+      await downloadResumePDF(content, `${form.personal.name || 'resume'}.pdf`)
     }
   }
 
   const handleDownloadDocx = async () => {
     if (content) {
-      await generateDocx(content, `${form.personal.name || 'resume'}.docx`)
+      await downloadResumeWord(content, `${form.personal.name || 'resume'}.docx`)
     }
   }
 
